@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-b
+  namespace: logging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-b
+  template:
+    metadata:
+      labels:
+        app: app-b
+    spec:
+      containers:
+        - env:
+            - name: SERVER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: server-port-app-b
+                  name: configmap-apps
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: spring.datasource.url
+                  name: configmap-apps
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: user
+                  name: configmap-mysql
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: secret-mysql
+          envFrom:
+            - configMapRef:
+                name: configmap-apps
+          image: dvago88/service_b:latest
+          imagePullPolicy: Always
+          name: app-b
+          ports:
+            - containerPort: 8082
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-b
+  namespace: logging
+spec:
+  ports:
+    - port: 8091
+      protocol: TCP
+      targetPort: 8091
+  selector:
+    app: app-b
+  type: ClusterIP

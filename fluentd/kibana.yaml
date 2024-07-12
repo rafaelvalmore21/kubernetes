@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deploymnet
+metadata:
+  name: kibana
+  namespace: logging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: kibana
+    spec:
+      containers:
+        - image: docker.elastic.co/kibana:8.2.1
+          name: kibana
+          ports:
+            - containerPort: 5601
+              name: kibana-http
+          resources:
+            limits:
+              memory: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  nemespace: logging
+spec:
+  ports:
+    - port: 5601
+      protocol: TCP
+      targetPort: 5601
+  selector:
+    component: kibana
+  type: LoadBalancer
